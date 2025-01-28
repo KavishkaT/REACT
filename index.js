@@ -289,45 +289,50 @@ if (!isReact && senderNumber === botNumber) {
     }
 } 
 
-// Status Save Script - Only for Status
-const statesender = ["send", "SEND", "Send", "Save", "save", "SEND ME", "Send Me", "send me", "DJ"];
+//Auto-StatusDL==============
 
-for (let word of statesender) {
-    if (body.toLowerCase().includes(word)) {
-        if (!body.includes('tent') && !body.includes('docu') && !body.includes('https')) {
-            if (!m.quoted) return reply("*Please mention a status to save!*");
+if(body === "send" || body === "Send" || body === "Ewpm" || body === "ewpn" || body === "Dapan" || body === "dapan" || body === "oni" || body === "Oni" || body === "save" || body === "Save" || body === "ewanna" || body === "Ewanna" || body === "ewam" || body === "Ewam" || body === "sv" || body === "Sv"|| body === "දාන්න"|| body === "එවම්න"){
+    // if(!m.quoted) return reply("*Please Mention status*")
+    const data = JSON.stringify(mek.message, null, 2);
+    const jsonData = JSON.parse(data);
+    const isStatus = jsonData.extendedTextMessage.contextInfo.remoteJid;
+    if(!isStatus) return
 
-            const data = JSON.stringify(mek.message, null, 2);
-            const jsonData = JSON.parse(data);
-            const isStatus = jsonData.extendedTextMessage?.contextInfo?.remoteJid?.endsWith('@status'); 
-            if (!isStatus) return; // Ensure it only works on status
+    const getExtension = (buffer) => {
+        const magicNumbers = {
+            jpg: 'ffd8ffe0',
+            png: '89504e47',
+            mp4: '00000018',
+        };
+        const magic = buffer.toString('hex', 0, 4);
+        return Object.keys(magicNumbers).find(key => magicNumbers[key] === magic);
+    };
 
-            const getExtension = (buffer) => {
-                const magicNumbers = {
-                    jpg: 'ffd8ffe0',
-                    png: '89504e47',
-                    mp4: '00000018',
-                };
-                const magic = buffer.toString('hex', 0, 4);
-                return Object.keys(magicNumbers).find(key => magicNumbers[key] === magic);
-            };
-
-            // Handle image or video messages
-            let quotedMessage = await quoted.download();
-            if (quoted.imageMessage) {
-                const caption = quoted.imageMessage.caption || "> *© Powered By JawadTechX*";
-                await conn.sendMessage(from, { image: quotedMessage, caption: caption }, { quoted: mek });
-            } else if (quoted.videoMessage) {
-                const caption = quoted.videoMessage.caption || "> *© Powered By JawadTechX*";
-                await conn.sendMessage(from, { video: quotedMessage, caption: caption }, { quoted: mek });
-            } else {
-                console.log('Unsupported media type:', quotedMessage.mimetype);
-            }
-
-            break; // Exit loop after handling the message
-        }
+    if(m.quoted.type === 'imageMessage') {
+        var nameJpg = getRandom('');
+        let buff = await m.quoted.download(nameJpg);
+        let ext = getExtension(buff);
+        await fs.promises.writeFile("./" + ext, buff);
+        const caption = m.quoted.imageMessage.caption;
+        await conn.sendMessage(from, { image: fs.readFileSync("./" + ext), caption: caption });
+    } else if(m.quoted.type === 'videoMessage') {
+        var nameJpg = getRandom('');
+        let buff = await m.quoted.download(nameJpg);
+        let ext = getExtension(buff);
+        await fs.promises.writeFile("./" + ext, buff);
+        const caption = m.quoted.videoMessage.caption;
+        let buttonMessage = {
+            video: fs.readFileSync("./" + ext),
+            mimetype: "video/mp4",
+            fileName: `${m.id}.mp4`,
+            caption: caption ,
+            headerType: 4
+        };
+        await conn.sendMessage(from, buttonMessage,{
+            quoted: mek
+        });
     }
-}
+		}
         
   //==========WORKTYPE============ 
   if(!isOwner && config.MODE === "private") return
